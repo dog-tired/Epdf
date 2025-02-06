@@ -9,6 +9,7 @@ use external_image::{DynamicImage, ImageFormat, ImageBuffer, Rgba};
 use std::sync::Arc;
 use std::io::Cursor;
 use piet::*;
+use std::fs;
 
 /**
  * https://github.com/ajrcarey/pdfium-render/blob/master/examples/export.rs
@@ -171,6 +172,12 @@ pub fn exportImages(pdf_path: &str) -> Result<(), PdfiumError> {
     // let pdfium = Pdfium::new(bindings);
     let pdfium = Pdfium::default();
 
+    // 定义要保存图片的文件夹路径
+    let folder_path = "export-images";
+
+    // 创建保存图片的文件夹，如果文件夹已存在则忽略错误
+    fs::create_dir_all(folder_path).expect("Failed to create directory");
+
     // This pattern is common enough that it is the default constructor for the Pdfium struct,
     // so we could have also simply written:
 
@@ -201,7 +208,7 @@ pub fn exportImages(pdf_path: &str) -> Result<(), PdfiumError> {
             .render_with_config(&render_config)? // Initializes a bitmap with the given configuration for this page ...
             .as_image() // ... renders it to an Image::DynamicImage ...
             .into_rgb8() // ... sets the correct color space ...
-            .save_with_format(format!("export-test-page-{}.jpg", index), ImageFormat::Jpeg); // ... and exports it to a JPEG.
+            .save_with_format(format!("export-images/export-page-{}.jpg", index), ImageFormat::Jpeg); // ... and exports it to a JPEG.
 
         assert!(result.is_ok());
     }
@@ -210,9 +217,12 @@ pub fn exportImages(pdf_path: &str) -> Result<(), PdfiumError> {
 }
 
 
-// 测试水印功能
+/**
+ * 测试水印功能
+ * 
+ */
 // #[test]
-fn watermark(pdf_path: &str) -> Result<(), PdfiumError> {
+pub fn watermark(pdf_path: &str, w: &str) -> Result<(), PdfiumError> {
     // For general comments about pdfium-render and binding to Pdfium, see export.rs.
 
     let pdfium = Pdfium::default();
@@ -245,9 +255,9 @@ fn watermark(pdf_path: &str) -> Result<(), PdfiumError> {
         // Create a large text watermark in the center of the page.
 
         let mut watermark =
-            PdfPageTextObject::new(&document, "Watermark", font, PdfPoints::new(150.0))?;
+            PdfPageTextObject::new(&document, w, font, PdfPoints::new(100.0))?;
 
-        watermark.set_fill_color(PdfColor::BLUE.with_alpha(128))?;
+        watermark.set_fill_color(PdfColor::DARK_SLATE_GRAY.with_alpha(50))?;
         watermark.rotate_counter_clockwise_degrees(45.0)?;
         watermark.translate(
             (width - watermark.width()?) / 2.0 + PdfPoints::new(75.0),
@@ -259,7 +269,7 @@ fn watermark(pdf_path: &str) -> Result<(), PdfiumError> {
         Ok(())
     })?;
 
-    document.save_to_file("watermark-test.pdf")
+    document.save_to_file("watermark.pdf")
 }
 
 
