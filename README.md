@@ -12,13 +12,17 @@ PDF editor written in rust, under development
 
 - --help: 显示帮助信息
 - --dis 显示pdf ：
-    - .\Epdf.exe --dis concat-test.pdf
+    - Epdf.exe --dis concat-test.pdf
 - --copy 新建pdf ：
-    - .\Epdf.exe --copy concat-test.pdf 1-2,2,2,2,2,1,1,1
+    - Epdf.exe --copy concat-test.pdf 1-2,2,2,2,2,1,1,1
 - --water 加水印 : 
-    - .\Epdf.exe --water concat-test.pdf waterMark
+    - Epdf.exe --water concat-test.pdf waterMark
 - --2images 转图片: 
-    - .\Epdf.exe --2images concat-test.pdf
+    - Epdf.exe --2images concat-test.pdf
+- --extract_images 提取图片元素:
+    - Epdf.exe --extract_images your_pdf_file.pdf
+- --extract_text 提取文本元素:
+    - Epdf.exe --extract_text your_pdf_file.pdf
 
 
 
@@ -57,4 +61,14 @@ Epdf 是一款使用 Rust 编写的 PDF 编辑器，目前仍在开发中。它�
 .\Epdf.exe --2images concat-test.pdf
 ```
 
-请注意，由于该软件仍在开发中，部分功能可能存在不稳定或不完善的情况。在使用过程中如有任何问题或建议，欢迎反馈给开发者。 
+### --extract_images 提取图片
+该选项可从指定的 PDF 文件中提取图片。使用示例：
+```sh
+.\Epdf.exe --extract_images your_pdf_file.pdf
+```
+
+### --extract_text 提取文本
+该选项可从指定的 PDF 文件中提取文本。使用示例：
+```sh
+.\Epdf.exe --extract_text your_pdf_file.pdf
+```
