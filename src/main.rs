@@ -26,6 +26,9 @@ fn main() {
         "--help" => {
            print_help();
         },
+        "--v" => {
+           print_version();
+        },
         "--dis" => {
             let path = match args.get(2) {
                 Some(arg) => arg,
@@ -62,6 +65,20 @@ fn main() {
             };
             pdf_util::exportImages(path);
         },
+        "--extract_images" => {
+            let path = match args.get(2) {
+                Some(arg) => arg,
+                None => "",
+            };
+            pdf_util::extract_images(path);
+        },
+        "--extract_text" => {
+            let path = match args.get(2) {
+                Some(arg) => arg,
+                None => "",
+            };
+            pdf_util::extract_text(path);
+        },
         _ => println!("Invalid option, please try again."),
     }
 
@@ -77,10 +94,13 @@ fn print_help() {
 
     let commands = vec![
         ("--help", "显示帮助信息"),
+        ("--v", "显示版本"),
         ("--dis", &dis_desc),
         ("--copy", &copy_desc),
         ("--water", &water_desc),
         ("--2images", &images_desc),
+        ("--extract_images", "提取图片元素"),
+        ("--extract_text", "提取文字元素"),
     ];
 
     let max_command_len = commands.iter().map(|(cmd, _)| cmd.len()).max().unwrap_or(0);
@@ -91,4 +111,10 @@ fn print_help() {
         println!("{:<width$} {}", cmd, desc, width = max_command_len + 2);
     }
     println!("{:-<80}", "");
+}
+
+
+fn print_version() {
+    println!("authors: buRanXin");
+    println!("Epdf version 0.0.0");
 }

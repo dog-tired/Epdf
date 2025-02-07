@@ -362,3 +362,106 @@ pub fn copy(pdf_path: &str, pages: &str) -> Result<(), PdfiumError> {
 
     document.save_to_file("concat-test.pdf")
 }
+
+
+/**
+ * 提取图片元素
+ */
+pub fn extract_images(pdf_path: &str) -> Result<(), PdfiumError> {
+    // For general comments about pdfium-render and binding to Pdfium, see export.rs.
+
+    Pdfium::default()
+        .load_pdf_from_file(pdf_path, None)?
+        .pages()
+        .iter()
+        .enumerate()
+        .for_each(|(page_index, page)| {
+            // For each page in the document, output the images on the page to separate files.
+
+            println!("=============== Page {} ===============", page_index);
+
+            page.objects()
+                .iter()
+                .enumerate()
+                .for_each(|(object_index, object)| {
+                    if let Some(image) = object.as_image_object() {
+                        if let Ok(image) = image.get_raw_image() {
+                            println!("Exporting image with object index {} to file", object_index);
+
+                            let save_result = image.save_with_format(
+                                format!(
+                                    "page-{}-image-{}.png",
+                                    page_index, object_index
+                                ),
+                                ImageFormat::Png,
+                            );
+
+                            if let Err(err) = save_result {
+                                eprintln!("Failed to save image: {:?}", err);
+                            }
+                        }
+                    }
+                });
+        });
+
+    Ok(())
+}
+
+
+/**
+ * 提取文本元素
+
+ */
+pub fn extract_text(pdf_path: &str) -> Result<(), PdfiumError> {
+    // For general comments about pdfium-render and binding to Pdfium, see export.rs.
+
+    Pdfium::default()
+        .load_pdf_from_file(pdf_path, None)?
+        .pages()
+        .iter()
+        .enumerate()
+        .for_each(|(index, page)| {
+            // For each page in the document, output the text on the page to the console.
+
+            println!("=============== Page {} ===============", index);
+
+            println!("{}", page.text().unwrap().all());
+
+            // PdfPageText::all() returns all text across all page objects of type
+            // PdfPageObjectType::Text on the page - this is convenience function,
+            // since it is often useful to extract all the page text in one operation.
+            // We could achieve exactly the same result by iterating over all the page
+            // text objects manually and concatenating the text strings extracted from
+            // each object together, like so:
+
+            // Extract all text on the page
+            // let all_text = page.objects()
+            //    .iter()
+            //    .filter_map(|object| object
+            //         .as_text_object()
+            //         .map(|object| object.text()))
+            //    .collect::<Vec<_>>()
+            //    .join("");
+
+            // // 假设每行最多显示 80 个字符
+            // let line_length = 80;
+            // for chunk in all_text.chars().collect::<Vec<char>>().chunks(line_length) {
+            //     let line: String = chunk.iter().collect();
+            //     println!("{}", line);
+            // }
+        });
+
+    Ok(())
+}
+
+
+
+#[test]
+fn test_exporter() {
+    extract_images(PDF_PATH);
+}
+
+#[test]
+fn test_ex_text() {
+    extract_text(PDF_PATH);
+}
