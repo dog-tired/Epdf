@@ -21,6 +21,11 @@ struct ImageWrapper {
     format: ImageFormat,
 }
 
+pub struct PdfPageRange {
+    pub file_path: String,
+    pub page_indices: String,
+}
+
 impl ImageWrapper {
     fn from_dynamic_image(image: DynamicImage, format: ImageFormat) -> Self {
         ImageWrapper { data: image, format }
@@ -408,10 +413,8 @@ pub fn extract_images(pdf_path: &str) -> Result<(), PdfiumError> {
 }
 
 
-/**
- * 提取文本元素
 
- */
+/// 提取文本元素
 pub fn extract_text(pdf_path: &str) -> Result<(), PdfiumError> {
     // For general comments about pdfium-render and binding to Pdfium, see export.rs.
 
@@ -452,6 +455,71 @@ pub fn extract_text(pdf_path: &str) -> Result<(), PdfiumError> {
         });
 
     Ok(())
+}
+
+
+pub fn concat(pdf_page_ranges: Vec<PdfPageRange>) -> Result<(), PdfiumError> {
+    // For general comments about pdfium-render and binding to Pdfium, see export.rs.
+
+    let pdfium = Pdfium::default();
+
+    // There are several functions available to copy one or more pages from one document
+    // to another:
+
+    // PdfDocument::append(): this is the simplest. It copies all pages in one document
+    // into this PdfDocument, placing the copied pages at the end of this PdfDocument's
+    // PdfPages collection.
+
+    // PdfPages::import_page_from_document(): copies one page from a document
+    // into this PdfPages collection at a user-defined position.
+
+    // PdfPages::import_page_range_from_document(): copies multiple pages, expressed
+    // as a sequential 0-indexed inclusive range, from a document into this PdfPages
+    // collection at a user-defined position.
+
+    // PdfPages::import_pages_from_document(): copies multiple pages, expressed as
+    // a "human-friendly" 1-indexed comma-delimited string of page numbers and ranges,
+    // from a document into this PdfPages collection at a user-defined position.
+    // The page range string is the same as what you'd expect to use in, e.g. a
+    // Print File dialog box, with a specification like "1,3-4,6,9-12" being accepted.
+
+    // All these functions are demonstrated below.
+
+    // Create a new blank document...
+
+    let mut document = pdfium.create_new_pdf()?;
+
+    // ... append all pages from a test file using PdfDocument::append() ...
+
+    for pdf_page_range in pdf_page_ranges {
+        let source_doc = pdfium.load_pdf_from_file(&pdf_page_range.file_path, None)?;
+        let destination_page_index = document.pages().len();
+        document.pages_mut().copy_pages_from_document(
+            &source_doc,
+            &pdf_page_range.page_indices,
+            destination_page_index,
+        )?;
+    }
+
+
+    // document
+    //     .pages_mut()
+    //     .append(&pdfium.load_pdf_from_file("test/text-test.pdf", None)?)?;
+
+    // // ... import some more pages from another test file, this time
+    // // using PdfPages::import_pages_from_document() ...
+
+    // let destination_page_index = document.pages().len();
+
+    // document.pages_mut().copy_pages_from_document(
+    //     &pdfium.load_pdf_from_file("test/export-test.pdf", None)?,
+    //     "3-6", // Note: 1-indexed, not 0-indexed
+    //     destination_page_index,
+    // )?;
+
+    // ... and save the final result.
+
+    document.save_to_file("concat.pdf")
 }
 
 

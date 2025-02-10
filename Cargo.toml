@@ -3,6 +3,9 @@ name = "Epdf"
 version = "0.1.0"
 edition = "2021"
 
+[profile.release]
+lto = true
+
 [dependencies]
 druid = { version = "0.8.3", features = ["image"] }
 
