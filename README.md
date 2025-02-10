@@ -33,6 +33,8 @@ PDF editor written in rust, under development
     - Epdf.exe --extract_text your_pdf_file.pdf
 - --concat 合并pdf:
     - Epdf.exe --concat pdfEdit.pdf 1,2 kafka.pdf 2
+- --images_2_pdf 文件夹中图片合成pdf（图片名称为数字，合成时按照序号顺序）:
+    - Epdf.exe --images_2_pdf folder_path
 
 # 项目说明
 项目打包
@@ -116,3 +118,12 @@ Epdf.exe --extract_text your_pdf_path
 - **参数含义**：
     - `--extract_text`：该选项用于触发从 PDF 文件中提取文本的功能。
     - `your_pdf_path`：要从中提取文本的 PDF 文件的路径，可以是相对路径或绝对路径。
+
+### --images_2_pdf 文件夹中图片合成 pdf（图片名称为数字，合成时按照序号顺序）
+该选项可将指定文件夹中的图片合成一个 PDF 文件，图片名称需为数字，合成时会按照序号顺序进行。使用示例：
+```sh
+Epdf.exe --images_2_pdf folder_path
+```
+- **参数含义**：
+    - `-images_2_pdf`：该选项用于触发将文件夹中图片合成 PDF 文件的功能。
+    - `folder_path`：包含要合成的图片的文件夹路径，可以是相对路径或绝对路径。
