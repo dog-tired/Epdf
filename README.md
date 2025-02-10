@@ -34,6 +34,11 @@ PDF editor written in rust, under development
 - --concat 合并pdf:
     - Epdf.exe --concat pdfEdit.pdf 1,2 kafka.pdf 2
 
+# 项目说明
+项目打包
+```bash
+cargo build --release     
+```
 
 
 # Epdf

@@ -1,15 +1,14 @@
 use druid::{
     widget::{Flex, Image as DruidImage, Label, Scroll, SizedBox}, Color, AppLauncher, ImageBuf, Widget, WidgetExt, WindowDesc
 };
-use pdfium_render::*;
 use pdfium_render::prelude::*;
 // 为 image 库重命名，避免冲突
 use image as external_image;
-use external_image::{DynamicImage, ImageFormat, ImageBuffer, Rgba};
-use std::sync::Arc;
-use std::io::Cursor;
+use external_image::{DynamicImage, ImageFormat};
+use pdfium_render::prelude::PdfPageObjectCommon;
 use piet::*;
 use std::fs;
+use std::path::Path;
 
 /**
  * https://github.com/ajrcarey/pdfium-render/blob/master/examples/export.rs
@@ -524,6 +523,134 @@ pub fn concat(pdf_page_ranges: Vec<PdfPageRange>) -> Result<(), PdfiumError> {
 
 
 
+use image::GenericImageView;
+use regex::Regex;
+
+fn images_to_pdf(images: Vec<String>, output_path: &str) -> Result<(), PdfiumError> {
+    // 初始化 Pdfium 库
+    let pdfium = Pdfium::default();
+    // 创建一个新的 PDF 文档
+    let mut document = pdfium.create_new_pdf()?;
+
+    for (index, image_path) in images.iter().enumerate() {
+        // 打开图片
+        let img: DynamicImage = match image::open(image_path) {
+            Ok(img) => {
+                println!("success");
+                img
+            },
+            Err(e) => {
+                eprintln!("Failed to open image {}: {}", image_path, e);
+                continue;
+            }
+        };
+
+        let (width, height) = img.dimensions();
+        println!("width: {}, height: {}", width, height);
+
+        // 创建一个新的 PDF 页面
+        let mut page = document
+            .pages_mut()
+            .create_page_at_end(PdfPagePaperSize::a4())?;
+
+        // 将图片渲染为位图
+        let bitmap = img.to_rgba8();
+
+        // 计算图片在 A4 页面上的缩放比例，以确保图片完整显示
+        let page_width = page.width().value;
+        let page_height = page.height().value;
+        let scale_factor = (page_width / width as f32).min(page_height / height as f32);
+        let scaled_width = width as f32 * scale_factor;
+        let scaled_height = height as f32 * scale_factor;
+
+        // 创建一个新的 PdfPageImageObject 实例，使用转换后的位图
+        let mut image_object = PdfPageImageObject::new_with_width(
+            &document,
+            &img,
+            PdfPoints::new(scaled_width),
+        )?;
+
+        // 设置图片在页面上的位置，使其居中显示
+        let x = (page_width - scaled_width) / 2.0;
+        let y = (page_height - scaled_height) / 2.0;
+        image_object.translate(PdfPoints::new(x), PdfPoints::new(y))?;
+
+        // 将图片对象添加到页面
+        page.objects_mut().add_image_object(image_object)?;
+    }
+
+    // 保存生成的 PDF 文件
+    document.save_to_file(output_path)?;
+
+    Ok(())
+}
+
+
+fn read_folder(folder_path: &str) -> Result<Vec<String>, std::io::Error> {
+    // 读取文件夹中的所有条目
+    let entries = fs::read_dir(folder_path)?;
+    let mut file_paths: Vec<String> = entries
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            if path.is_file() {
+                Some(path.to_string_lossy().to_string())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    // 按文件名中的数字排序
+    let re = Regex::new(r"\d+").unwrap(); // 匹配文件名中的数字
+    file_paths.sort_by(|a, b| {
+        let a_num = extract_number(&re, a);
+        let b_num = extract_number(&re, b);
+        a_num.cmp(&b_num)
+    });
+
+    Ok(file_paths)
+}
+
+// 提取文件名中的数字
+fn extract_number(re: &Regex, file_path: &str) -> i32 {
+    let file_name = Path::new(file_path)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("");
+
+    // 查找文件名中的数字部分
+    if let Some(captures) = re.find(file_name) {
+        captures.as_str().parse::<i32>().unwrap_or(0)
+    } else {
+        0
+    }
+}
+
+
+pub fn create_pdf_from_image(folder_path: &str) {
+    // 输入文件夹路径
+    // let folder_path = "D:/ypj/vs_note/downloaded_images"; // 请替换为实际的文件夹路径
+
+    // 读取文件夹中的文件
+    let read_folder_result = read_folder(folder_path);
+    match read_folder_result {
+        Ok(images) => {
+            // 打印组装后的数组
+            println!("let images = {:?};", images);
+            let output_path = "output.pdf";
+
+            if let Err(e) = images_to_pdf(images, output_path) {
+                eprintln!("Failed to generate PDF: {}", e);
+            }
+        }
+        Err(err) => {
+            eprintln!("Error: {}", err);
+        }
+    }
+}
+
+
 #[test]
 fn test_exporter() {
     extract_images(PDF_PATH);
@@ -532,4 +659,10 @@ fn test_exporter() {
 #[test]
 fn test_ex_text() {
     extract_text(PDF_PATH);
+}
+
+#[test]
+fn main2() {
+    let path = "D:/ypj/vs_note/downloaded_images";
+    create_pdf_from_image(path);
 }

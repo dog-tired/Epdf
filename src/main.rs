@@ -7,21 +7,13 @@ fn main() {
     // 获取命令行参数的迭代器
     let args: Vec<String> = std::env::args().collect();
 
-    // 打印参数数量
-    // println!("参数数量: {}", args.len());
-
     // 遍历并打印每个参数
     let mut op = match args.get(1) {
         Some(arg) => arg,
         None => "",
     };
 
-    // for (index, arg) in args.iter().enumerate() {
-    //     println!("参数 {}: {}", index, arg);
-    // }
-
     // 处理用户输入
-    // .\Epdf.exe D:\ypj\rust\e-pdf\concat-test.pdf --dis
     match op {
         "--help" => {
            print_help();
@@ -93,6 +85,13 @@ fn main() {
             };
             pdf_util::extract_text(path);
         },
+        "--images_2_pdf" => {
+            let path = match args.get(2) {
+                Some(arg) => arg,
+                None => "",
+            };
+            pdf_util::create_pdf_from_image(path);
+        },
         _ => println!("Invalid option, please try again."),
     }
 
@@ -106,8 +105,10 @@ fn print_help() {
     let concat_desc = format!("合并多个pdf文件 ：{} --concat pdf1_path page_selection1 pdf2_path page_selection2", exe_name);
     let water_desc = format!("嵌入水印 ：{} --water concat-test.pdf waterMark", exe_name);
     let images_desc = format!("另存为图片 ：{} --2images concat-test.pdf", exe_name);
-    let extract_images_desc = format!("提取图片元素 ：{} --extract_images concat-test.pdf", exe_name);
+    let extract_images_desc: String = format!("提取图片元素 ：{} --extract_images concat-test.pdf", exe_name);
     let extract_txt_desc = format!("提取文字元素 ：{} --extract_text concat-test.pdf", exe_name);
+    let images_2_pdf_desc = format!("文件夹中图片合成pdf（图片名称为数字，合成时按照序号顺序） ：{} --images_2_pdf floder_path", exe_name);
+
 
 
     let commands = vec![
@@ -120,6 +121,7 @@ fn print_help() {
         ("--2images", &images_desc),
         ("--extract_images", &extract_images_desc),
         ("--extract_text", &extract_txt_desc),
+        ("--images_2_pdf", &images_2_pdf_desc),
     ];
 
     let max_command_len = commands.iter().map(|(cmd, _)| cmd.len()).max().unwrap_or(0);
