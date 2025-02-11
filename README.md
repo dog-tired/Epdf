@@ -45,7 +45,7 @@ cargo build --release
 
 # Epdf
 
-Epdf 是一款使用 Rust 编写的 PDF 编辑器，目前仍在开发中。它提供了一系列实用的命令行选项，方便用户对 PDF 文件进行操作。
+Epdf 是一款用 Rust 编写、仍在开发中的 PDF 编辑器。它解决了传统 PDF 编辑软件操作复杂、功能分散的痛点。借助 Rust 高性能、内存安全等特性，以命令行界面与用户交互。支持多种实用功能，如用 `--help` 显示帮助，`--dis` 显示 PDF，`--copy` 新建 PDF，`--water` 加水印，还能进行文件与图片的相互转换、元素提取及文件合并等。适用于办公场景下的文件处理、设计场景的图片提取创作，以及学习场景的资料整理查看等，用户通过简单命令即可高效完成各类 PDF 操作，节省时间与精力。 
 
 ## 命令行选项
 
@@ -95,11 +95,12 @@ Epdf.exe --water your_pdf_path watermark_content
 ### --2images 转图片
 该选项可将指定的 PDF 文件转换为图片。使用示例：
 ```sh
-Epdf.exe --2images your_pdf_path
+Epdf.exe --2images your_pdf_path width
 ```
 - **参数含义**：
     - `--2images`：该选项用于触发将 PDF 文件转换为图片的功能。
     - `your_pdf_path`：要转换为图片的 PDF 文件的路径，可以是相对路径或绝对路径。
+    - `width`：需要转换成图片的宽度，默认是1000。
 
 ### --extract_images 提取图片
 该选项可从指定的 PDF 文件中提取图片。使用示例：

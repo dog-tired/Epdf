@@ -1,6 +1,8 @@
 
 mod pdf_util;
 mod license;
+use core::num;
+
 use pdf_util::PdfPageRange;
 
 fn main() {
@@ -69,13 +71,21 @@ fn main() {
                 Some(arg) => arg,
                 None => "",
             };
-            pdf_util::exportImages(path);
+            let width = match args.get(3) {
+                Some(arg) => match arg.parse::<i32>() {
+                    Ok(num) => num,
+                    Err(_) => 1000,
+                },
+                None => 1000,
+            };
+            pdf_util::exportImages(path, width);
         },
         "--extract_images" => {
             let path = match args.get(2) {
                 Some(arg) => arg,
                 None => "",
             };
+
             pdf_util::extract_images(path);
         },
         "--extract_text" => {
@@ -104,7 +114,7 @@ fn print_help() {
     let copy_desc = format!("从原始pdf拷贝新的pdf ：{} --copy concat-test.pdf 1-2,2,2,2,2,1,1,1", exe_name);
     let concat_desc = format!("合并多个pdf文件 ：{} --concat pdf1_path page_selection1 pdf2_path page_selection2", exe_name);
     let water_desc = format!("嵌入水印 ：{} --water concat-test.pdf waterMark", exe_name);
-    let images_desc = format!("另存为图片 ：{} --2images concat-test.pdf", exe_name);
+    let images_desc = format!("另存为图片 ：{} --2images concat-test.pdf 1000", exe_name);
     let extract_images_desc: String = format!("提取图片元素 ：{} --extract_images concat-test.pdf", exe_name);
     let extract_txt_desc = format!("提取文字元素 ：{} --extract_text concat-test.pdf", exe_name);
     let images_2_pdf_desc = format!("文件夹中图片合成pdf（图片名称为数字，合成时按照序号顺序） ：{} --images_2_pdf floder_path", exe_name);

@@ -163,7 +163,7 @@ pub fn display_pdf(pdf_path: &str) {
 }
 
 // #[test]
-pub fn exportImages(pdf_path: &str) -> Result<(), PdfiumError> {
+pub fn exportImages(pdf_path: &str, maximum_width: i32) -> Result<(), PdfiumError> {
     // let bindings = Pdfium::bind_to_library(
     //     // Attempt to bind to a pdfium library in the current working directory...
     //     Pdfium::pdfium_platform_library_name_at_path("./"),
@@ -193,7 +193,7 @@ pub fn exportImages(pdf_path: &str) -> Result<(), PdfiumError> {
 
     let render_config = PdfRenderConfig::new()
         .set_target_width(2000)
-        .set_maximum_height(2000)
+        .set_maximum_width(maximum_width)
         .rotate_if_landscape(PdfPageRenderRotation::Degrees90, true);
 
     // Load the sample file...
@@ -213,7 +213,7 @@ pub fn exportImages(pdf_path: &str) -> Result<(), PdfiumError> {
             .as_image() // ... renders it to an Image::DynamicImage ...
             .into_rgb8() // ... sets the correct color space ...
             .save_with_format(format!("export-images/export-page-{}.jpg", index), ImageFormat::Jpeg); // ... and exports it to a JPEG.
-
+        println!("Successfully export the {} page", index);
         assert!(result.is_ok());
     }
 
@@ -540,7 +540,7 @@ fn images_to_pdf(images: Vec<String>, output_path: &str) -> Result<(), PdfiumErr
                 img
             },
             Err(e) => {
-                eprintln!("Failed to open image {}: {}", image_path, e);
+                eprintln!("Failed to open image {}: {}, Please check whether the file format is the same as the suffix name", image_path, e);
                 continue;
             }
         };
@@ -650,6 +650,11 @@ pub fn create_pdf_from_image(folder_path: &str) {
     }
 }
 
+
+#[test]
+fn test_exportImages() {
+    exportImages(PDF_PATH, 1000);
+}
 
 #[test]
 fn test_exporter() {

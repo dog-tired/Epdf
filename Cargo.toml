@@ -8,7 +8,6 @@ lto = true
 
 [dependencies]
 druid = { version = "0.8.3", features = ["image"] }
-
 pdfium-render = { version = "0.8.27", features = ["image"] }
 image = "0.25.5"
 piet = "0.6.2"
