@@ -1,5 +1,5 @@
 use druid::{
-    widget::{Flex, Image as DruidImage, Label, Scroll, SizedBox}, Color, AppLauncher, ImageBuf, Widget, WidgetExt, WindowDesc
+    text, widget::{Flex, Image as DruidImage, Label, Scroll, SizedBox}, AppLauncher, Color, ImageBuf, Widget, WidgetExt, WindowDesc
 };
 use pdfium_render::prelude::*;
 // 为 image 库重命名，避免冲突
@@ -415,43 +415,64 @@ pub fn extract_images(pdf_path: &str) -> Result<(), PdfiumError> {
 
 /// 提取文本元素
 pub fn extract_text(pdf_path: &str) -> Result<(), PdfiumError> {
-    // For general comments about pdfium-render and binding to Pdfium, see export.rs.
+       // Load the PDF document
+    let pdfium = Pdfium::default();
+    let document = pdfium.load_pdf_from_file(pdf_path, None)?;
 
-    Pdfium::default()
-        .load_pdf_from_file(pdf_path, None)?
-        .pages()
-        .iter()
-        .enumerate()
-        .for_each(|(index, page)| {
-            // For each page in the document, output the text on the page to the console.
+    // Iterate through each page in the document
+    document.pages().iter().enumerate().for_each(|(index, page)| {
+        // Output the text on the page to the console
+        println!("=============== Page {} ===============", index);
 
-            println!("=============== Page {} ===============", index);
+        // Get all text characters on the page
+        let page_text = page.text().unwrap();
+        let chars = page_text.chars();
 
-            println!("{}", page.text().unwrap().all());
+        // Group characters by their y-coordinate (line)
+        let mut lines: Vec<Vec<(char, PdfPoints, PdfPoints)>> = Vec::new();
 
-            // PdfPageText::all() returns all text across all page objects of type
-            // PdfPageObjectType::Text on the page - this is convenience function,
-            // since it is often useful to extract all the page text in one operation.
-            // We could achieve exactly the same result by iterating over all the page
-            // text objects manually and concatenating the text strings extracted from
-            // each object together, like so:
+        for char in chars.iter() {
+            let mut unicode_char = char.unicode_char().unwrap();
+            let x = char.origin_x().unwrap();
+            let y = char.origin_y().unwrap();
+            // println!("{}, x: {}, y: {}", unicode_char, x.value, y.value);
+            if (unicode_char == '\n' || unicode_char == '\r') {
+                // println!("this is n: {}, {}", x, y);
+                unicode_char = ' ';
+            }
+            // Find the line that this character belongs to
+            let mut found_line = false;
+            for line in &mut lines {
+                // If the y-coordinate is close enough to an existing line, add the character to that line
+                if (line[0].2.value - y.value).abs() < 1.0 {
+                    line.push((unicode_char, x, y));
+                    found_line = true;
+                    break;
+                }
+            }
 
-            // Extract all text on the page
-            // let all_text = page.objects()
-            //    .iter()
-            //    .filter_map(|object| object
-            //         .as_text_object()
-            //         .map(|object| object.text()))
-            //    .collect::<Vec<_>>()
-            //    .join("");
+            // If no suitable line is found, create a new line
+            if !found_line {
+                lines.push(vec![(unicode_char, x, y)]);
+            }
+        }
 
-            // // 假设每行最多显示 80 个字符
-            // let line_length = 80;
-            // for chunk in all_text.chars().collect::<Vec<char>>().chunks(line_length) {
-            //     let line: String = chunk.iter().collect();
-            //     println!("{}", line);
-            // }
-        });
+        // Sort lines by their y-coordinate (top to bottom)
+        // lines.sort_by(|a, b| a[0].2.value.partial_cmp(&b[0].2.value).unwrap());
+        lines.sort_by(|a, b| b[0].2.value.partial_cmp(&a[0].2.value).unwrap());
+
+
+        // Output each line
+        for line in lines {
+            // Sort characters in each line by their x-coordinate (left to right)
+            let mut sorted_line = line;
+            sorted_line.sort_by(|a, b| a.1.value.partial_cmp(&b.1.value).unwrap());
+
+            // Collect characters into a string and print the line
+            let line_text: String = sorted_line.iter().map(|c| c.0).collect();
+            println!("{}", line_text);
+        }
+    });
 
     Ok(())
 }
