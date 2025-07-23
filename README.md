@@ -26,7 +26,7 @@ PDF editor written in rust, under development
 - --water 加水印 : 
     - Epdf.exe --water concat-test.pdf waterMark
 - --2images 转图片: 
-    - Epdf.exe --2images concat-test.pdf
+    - Epdf.exe --2images concat-test.pdf 1000
 - --extract_images 提取图片元素:
     - Epdf.exe --extract_images your_pdf_file.pdf
 - --extract_text 提取文本元素:
@@ -39,7 +39,9 @@ PDF editor written in rust, under development
 # 项目说明
 项目打包
 ```bash
+cargo clean
 cargo build --release     
+使用The Enigma Protector x64打包工具进行打包dll文件
 ```
 
 
@@ -95,12 +97,12 @@ Epdf.exe --water your_pdf_path watermark_content
 ### --2images 转图片
 该选项可将指定的 PDF 文件转换为图片。使用示例：
 ```sh
-Epdf.exe --2images your_pdf_path width
+Epdf.exe --2images your_pdf_path height
 ```
 - **参数含义**：
     - `--2images`：该选项用于触发将 PDF 文件转换为图片的功能。
     - `your_pdf_path`：要转换为图片的 PDF 文件的路径，可以是相对路径或绝对路径。
-    - `width`：需要转换成图片的宽度，默认是1000。
+    - `height`：需要转换成图片的高度，默认是1000。
 
 ### --extract_images 提取图片
 该选项可从指定的 PDF 文件中提取图片。使用示例：
